@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: <JOB_NAME>
+spec:
+  template:
+    spec:
+      priorityClassName: <PRIORITY>
+      containers:
+        - name: <CONTAINER_NAME>
+          image: <IMAGE>
+          workingDir: <EXPERIMENT_PATH>
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: LOGNAME
+              value: "dulny"
+            - name: USER
+              value: "dulny"
+            - name: OMP_NUM_THREADS
+              value: "2"
+          resources:
+            limits:
+              cpu: "<CPU_LIMIT>"
+              memory: "<MEM_LIMIT>"
+            requests:
+              cpu: "<CPU_REQUEST>"
+              memory: "<MEM_REQUEST>"
+          command: ["python3", "-u", "<SCRIPT>"]
+          args: <ARGUMENTS>
+          volumeMounts:
+            - mountPath: "<DATA_MOUNT_PATH>"
+              name: data
+            - mountPath: "<OUTPUT_MOUNT_PATH>"
+              name: output
+      imagePullSecrets:
+        - name: lsx-staff-registry
+      restartPolicy: "Never"
+      volumes:
+        - name: data
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "<DATA_MOUNT_PATH>" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret
+        - name: output
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "<OUTPUT_MOUNT_PATH>" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret

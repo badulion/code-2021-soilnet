@@ -1,0 +1,5 @@
+name: 'knn'
+parameters:
+  n_neighbors: 10
+  weights: 'uniform'
+  p: 2

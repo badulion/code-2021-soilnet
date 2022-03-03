@@ -1,0 +1,21 @@
+# @package _global_
+defaults:
+  - override /hydra/sweeper: optuna
+  - override /model: exact_gp
+
+hydra:
+  sweeper:
+    study_name: exact_gp_parameter_search
+    n_trials: 10
+    sampler:
+      seed: 123
+    direction: minimize
+    storage: null
+    n_jobs: 1
+    search_space:
+      model.parameters.kernel.parameters.nu:
+        type: categorical
+        choices:
+          - 0.5
+          - 1.5
+          - 2.5

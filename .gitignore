@@ -1,0 +1,7 @@
+__pycache__/
+/dataset/data/
+/notebooks/
+/outputs/
+/multirun/
+/soilnet-venv/
+/run_all.sh

@@ -1,0 +1,7 @@
+name: 'weighted_idw'
+parameters:
+  n_iterations: 10
+  n_neighbors: 100
+  p: 2
+  out_of_k: 0.0
+  lr: 0.0001

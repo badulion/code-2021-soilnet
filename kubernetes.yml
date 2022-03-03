@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: soilnet-search-vargp-nobk
+spec:
+  template:
+    spec:
+      priorityClassName: research-low
+      containers:
+        - name: soilnet-docker
+          image: lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/soilnet-feb2022:0.5.0
+          workingDir: /home/ls6/dulny/soilnet-Feb2022/
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: LOGNAME
+              value: "dulny"
+            - name: USER
+              value: "dulny"
+            - name: OMP_NUM_THREADS
+              value: "2"
+          resources:
+            limits:
+              cpu: "16"
+              memory: "16Gi"
+            requests:
+              cpu: "8"
+              memory: "8Gi"
+          command: ["python3", "-u", "main.py"]
+          args: ['-m', '+experiment=search/vargp', 'vars=nobk']
+          volumeMounts:
+            - mountPath: "/home/ls6/dulny/soilnet-Feb2022/dataset/data/"
+              name: data
+            - mountPath: "/home/ls6/dulny/soilnet-Feb2022/sweep"
+              name: output
+      imagePullSecrets:
+        - name: lsx-staff-registry
+      restartPolicy: "Never"
+      volumes:
+        - name: data
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/home/ls6/dulny/soilnet-Feb2022/dataset/data/" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret
+        - name: output
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/home/ls6/dulny/soilnet-Feb2022/sweep" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret

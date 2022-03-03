@@ -1,0 +1,23 @@
+# @package _global_
+defaults:
+  - override /hydra/sweeper: optuna
+  - override /model: knn
+
+hydra:
+  sweeper:
+    study_name: knn_parameter_search
+    n_trials: 100
+    sampler:
+      seed: 123
+    direction: minimize
+    storage: null
+    n_jobs: 1
+    search_space:
+      model.parameters.n_neighbors:
+        type: int
+        low: 1
+        high: 100
+      model.parameters.p:
+        type: int
+        low: 2
+        high: 20

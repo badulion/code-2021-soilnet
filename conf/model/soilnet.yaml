@@ -1,0 +1,8 @@
+name: 'soilnet'
+parameters:
+  hidden_size:  256
+  hidden_layers:  6
+  num_tasks: 3
+  dropout: 0.0
+  learning_rate: 0.001
+  epochs: 10

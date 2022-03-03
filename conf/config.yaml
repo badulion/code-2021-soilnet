@@ -1,0 +1,19 @@
+defaults:
+  - model: idw
+  - vars: full
+  - model@weak_model: rf
+
+dataset:
+  path_labeled: dataset/data/Feb_2022/fr_lab.csv
+  path_unlabeled: dataset/data/Feb_2022/fr_unlab.csv
+  n_splits: 10
+  random_seed: 4212
+
+general:
+  verbose: false
+  save_predictions: false
+
+hydra:
+  sweep:
+    dir: mulitrun_search/${hydra.sweeper.study_name}/${now:%Y-%m-%d--%H-%M-%S}
+    subdir: ${hydra.job.num}
