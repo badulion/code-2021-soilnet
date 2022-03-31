@@ -1,0 +1,7 @@
+parameters:
+  n: 4
+  deviation_between_two_points: 50
+  deviation_to_shrink_df: 100
+  deviation_for_perfect_hit1: 55
+  deviation_for_perfect_hit2: 25
+  # conf/patch/
