@@ -11,6 +11,7 @@ import warnings
 from tqdm import trange
 import pandas as pd
 from model.SoilModel import SoilModel
+from dataset.dataloader.patchDS import PatchDataModule
 
 
 @hydra.main(config_path='conf', config_name='config')
@@ -19,13 +20,24 @@ def my_app(cfg):
     targets = []
     metric = AllMetrics()
     for i in range(cfg.dataset.n_splits):
+        """
         data_labeled = LabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
                                          features_metrical=cfg.vars.features_metrical,
                                          features_categorical=cfg.vars.features_categorical,
                                          levels_categorical=cfg.vars.levels_categorical,
                                          encoding_categorical=cfg.vars.encoding_categorical,
                                          mode='val', fold=i)
-
+        """
+        data_labeled = PatchDataModule(path_lab=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
+                            path_unlab=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
+                            n=cfg.patch.parameters.n,
+                            deviation_to_shrink_df=cfg.patch.parameters.deviation_to_shrink_df,
+                            deviation_for_perfect_hit1=cfg.patch.parameters.deviation_for_perfect_hit1,
+                            deviation_for_perfect_hit2=cfg.patch.parameters.deviation_for_perfect_hit2,
+                            deviation_between_two_points=cfg.patch.parameters.deviation_between_two_points,
+                            features_metrical = cfg.vars.features_metrical,
+                            features_categorical = cfg.vars.features_categorical,
+                            mode="val")
         data_unlabeled = UnlabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
                                              data_labeled=data_labeled,
                                              weak_model=cfg.weak_model,
