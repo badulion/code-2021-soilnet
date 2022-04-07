@@ -12,6 +12,7 @@ from model.VariationalGP import VariationalGP
 from model.weightedIDW import WeightedIDWModel
 from model.SKLearnGP import SKLearnGPModel
 from model.SoilNet import SoilMLP, SoilNet
+from model.cnn import SoilCNN
 
 
 class SoilModel:
@@ -39,6 +40,8 @@ class SoilModel:
             self.model = SoilMLP(num_features=num_features, **params)
         elif name == 'soilnet':
             self.model = SoilNet(num_features=num_features, **params)
+        elif name == 'soilcnn':
+            self.model = SoilCNN(num_features=num_features, **params)
         else:
             self.model = DummyRegressor()
 
@@ -48,6 +51,8 @@ class SoilModel:
         if self.name == 'mlp':
             self.model.fit(train_datamodule)
         elif self.name == 'vargp':
+            self.model.fit(train_datamodule)
+        elif self.name == "soilcnn":
             self.model.fit(train_datamodule)
         elif self.name == "soilnet":
             self.model.fit(train_datamodule, pretrain_datamodule)
@@ -62,7 +67,7 @@ class SoilModel:
         test_ds = train_datamodule.test
         X, y = test_ds.get_data_as_np_array()
 
-        if self.name in ['mlp', 'vargp', 'soilnet']:
+        if self.name in ['mlp', 'vargp', 'soilnet', 'soilcnn']:
             preds = self.model.predict(train_datamodule)
         else:
             preds = self.model.predict(X)

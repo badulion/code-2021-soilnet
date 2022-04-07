@@ -7,7 +7,7 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 
-class SoilNN(nn.Module):
+class CNNModule(nn.Module):
     def __init__(self, input_channels: int = 16, output_size: int = 3, dropout=0.5, n=5, base_channels=16):
         super().__init__()
 
@@ -45,14 +45,14 @@ class SoilNN(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-
-class SoilNNModule(pl.LightningModule):
+# gleiche parameter wie für SoilCNN
+class SoilCNNLightningModule(pl.LightningModule):
     def __init__(self,
-                 input_size,
-                 output_size: int = 3,
-                 hidden_size: int = 256,
-                 hidden_layers: int = 6,
-                 dropout=0.0,
+                 input_channels: int = 16, 
+                 output_size: int = 3, 
+                 dropout: float = 0.5, 
+                 patch_size: int = 5, 
+                 base_channels: float = 16,
                  learning_rate=0.001,
                  l2_regularization=0.0):
         super().__init__()
@@ -60,11 +60,12 @@ class SoilNNModule(pl.LightningModule):
         self.learning_rate = learning_rate
         self.l2_regularization = l2_regularization
         self.loss = nn.functional.mse_loss
-        self.net = SoilNN(
-            input_size=input_size,
-            output_size=output_size,
-            hidden_size=hidden_size,
-            hidden_layers=hidden_layers,
+        self.net = SoilCNN(
+            input_channels = input_channels, 
+            output_size = output_size, 
+            dropout = dropout, 
+            patch_size = patch_size, 
+            base_channels = base_channels,
         )
         self.save_hyperparameters()
 
@@ -118,28 +119,28 @@ class SoilNNModule(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=self.l2_regularization)
 
 
-class SoilMLP:
+class SoilCNN:
     def __init__(self,
-                 num_features: int = 15,
-                 num_tasks: int = 3,
-                 hidden_size: int = 256,
-                 hidden_layers: int = 6,
-                 dropout=0.0,
+                 input_channels, 
+                 output_size: int = 3, 
+                 dropout: float = 0.5, 
+                 patch_size: int = 5, 
+                 base_channels: float = 16,
                  learning_rate=0.001,
                  l2_regularization=0.0,
                  n_epochs=100):
 
         #save parameters
-        self.num_features = num_features
+        self.num_features = input_channels
 
-        self.model = SoilNNModule(
-             input_size=num_features,
-             output_size=num_tasks,
-             hidden_size=hidden_size,
-             hidden_layers=hidden_layers,
-             dropout=dropout,
-             learning_rate=learning_rate,
-             l2_regularization=l2_regularization,
+        self.model = SoilCNNLightningModule(
+                input_channels = input_channels, 
+                output_size = output_size,
+                patch_size = patch_size, 
+                base_channels = base_channels,
+                dropout=dropout,
+                learning_rate=learning_rate,
+                l2_regularization=l2_regularization,
         )
         self.checkpoint_callback = ModelCheckpoint(monitor="val_loss")
         self.early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=0.00,
@@ -152,43 +153,7 @@ class SoilMLP:
 
     def fit(self, datamodule):
         self.trainer.fit(self.model, datamodule)
-        self.model = SoilNNModule.load_from_checkpoint(self.checkpoint_callback.best_model_path)
-
-    def predict(self, datamodule):
-        preds = self.trainer.predict(self.model, datamodule)
-        return torch.vstack(preds).cpu().detach().numpy()
-
-
-class SoilNet:
-    def __init__(self,
-                 num_features: int = 15,
-                 num_tasks: int = 3,
-                 hidden_size: int = 256,
-                 hidden_layers: int = 6,
-                 dropout=0.5,
-                 learning_rate=0.001,
-                 n_epochs=100):
-
-        self.model = SoilNNModule(
-             input_size=num_features,
-             output_size=num_tasks,
-             hidden_size=hidden_size,
-             hidden_layers=hidden_layers,
-             dropout=dropout,
-             learning_rate=learning_rate,
-        )
-        early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=0.00,
-                                            patience=5, verbose=False, mode="min")
-        self.trainer = pl.Trainer(
-             max_epochs=n_epochs,
-             num_sanity_val_steps=0,
-             val_check_interval=10,
-             callbacks=[early_stop_callback],
-        )
-
-    def fit(self, train_datamodule, pretrain_datamodule):
-        self.trainer.fit(self.model, pretrain_datamodule)
-        self.trainer.fit(self.model, train_datamodule)
+        self.model = SoilCNNLightningModule.load_from_checkpoint(self.checkpoint_callback.best_model_path)
 
     def predict(self, datamodule):
         preds = self.trainer.predict(self.model, datamodule)
