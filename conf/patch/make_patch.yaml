@@ -1,5 +1,5 @@
 parameters:
-  n: 4
+  n: 1
   deviation_between_two_points: 50
   deviation_to_shrink_df: 100
   deviation_for_perfect_hit1: 55
