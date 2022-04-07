@@ -8,39 +8,42 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 
 class SoilNN(nn.Module):
-    def __init__(self, input_size: int = 15, output_size: int = 3, hidden_size: int = 256, hidden_layers: int = 6, dropout=0.0):
+    def __init__(self, input_channels: int = 16, output_size: int = 3, dropout=0.5, n=5, base_channels=16):
         super().__init__()
 
-        sizes = [input_size] + [hidden_size for i in range(hidden_layers)] + [output_size]
-        self.layers = ()
-        self.layers.append(nn.Conv2d(input_size, hidden_size))
+        self.layers = []
+        self.layers.append(nn.Conv2d(input_channels, base_channels, kernel_size=(1,1))) # n x n    n = 11
         self.layers.append(torch.nn.ReLU())
-        self.layers.append(nn.Conv2d(hidden_size, hidden_size))
+        self.layers.append(nn.Conv2d(base_channels, base_channels * 2, kernel_size=(3,3))) # n-2 x n-2    n = 9
         self.layers.append(torch.nn.ReLU())
-        self.layers.append(nn.MaxPool2d(2, 2))
+        self.layers.append(nn.MaxPool2d(2, 2)) # (n-2)/2 x (n-2)/2         n = 5
         self.layers.append(torch.nn.Dropout(p=dropout, inplace=False))
-        self.layers.append(nn.Conv2d(hidden_size, hidden_size))
+        self.layers.append(nn.Conv2d(base_channels * 2, base_channels * 2, kernel_size=(3,3))) # (n-2)/2-2 x (n-2)/2-2    n = 3
         self.layers.append(torch.nn.ReLU())
-        self.layers.append(nn.Conv2d(hidden_size, hidden_size))
+        self.layers.append(nn.Conv2d(base_channels * 2, base_channels, kernel_size=(1,1)))
         self.layers.append(nn.Flatten(1))
+        self.layers.append(nn.Linear(int((n-2)/2-1 * (n-2)/2-1 * base_channels), base_channels)) #methode mit der man inputsize erkennen kann
+        self.layers.append(torch.nn.ReLU())
+        self.layers.append(torch.nn.Dropout(p=dropout, inplace=False))
+        self.layers.append(nn.Linear(base_channels, base_channels//2))
+        self.layers.append(torch.nn.ReLU())
+        self.layers.append(torch.nn.Dropout(p=dropout, inplace=False))
+        self.layers.append(nn.Linear(base_channels//2, output_size))
+        self.layers.append(torch.nn.ReLU())
+        self.layers.append(nn.Softmax())
 
-
+        # model sequential
+        self.model = nn.Sequential(*self.layers)
         #in 6 outputs splitten am ende nach tiefe (ganz spät)
-        #am ende nn.softmax()
-        #fully connected layer
-        #datamodule
-        #
+        # wie bestimme ich die sizes im neuronalen Netz? (in-channel, out-channel, kernel-size)
+        # wie integriere ich patchDS und cnn am besten?
+        # von 12 auf 16 dann kopieren
 
-        for layer in self.layers:
-            nn.init.kaiming_normal_(layer.weight, nonlinearity='selu')
+        #for layer in self.layers:
+        #   nn.init.kaiming_normal_(layer.weight, nonlinearity='selu')
 
     def forward(self, x):
-        for layer in self.layers[:-1]:
-            x = layer(x)
-
-        x = self.layers[-1](x)
-
-        return x
+        return self.model(x)
 
 
 class SoilNNModule(pl.LightningModule):
