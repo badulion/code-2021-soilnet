@@ -1,5 +1,5 @@
 defaults:
-  - model: idw
+  - model: soilcnn
   - vars: full
   - model@weak_model: rf
   - patch: make_patch
@@ -11,7 +11,7 @@ dataset:
   random_seed: 4212
 
 general:
-  verbose: false
+  verbose: true
   save_predictions: false
 
 hydra:

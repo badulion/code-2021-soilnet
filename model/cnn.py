@@ -10,7 +10,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 class CNNModule(nn.Module):
     def __init__(self, input_channels: int = 16, output_size: int = 3, dropout=0.5, patch_size=5, base_channels=16):
         super().__init__()
-
+        n = patch_size * 2 + 1
         self.layers = []
         self.layers.append(nn.Conv2d(input_channels, base_channels, kernel_size=(1,1))) # n x n    n = 11
         self.layers.append(torch.nn.ReLU())
@@ -22,7 +22,9 @@ class CNNModule(nn.Module):
         self.layers.append(torch.nn.ReLU())
         self.layers.append(nn.Conv2d(base_channels * 2, base_channels, kernel_size=(1,1)))
         self.layers.append(nn.Flatten(1))
-        self.layers.append(nn.Linear(int((patch_size-2)/2-1 * (patch_size-2)/2-1 * base_channels), base_channels)) #methode mit der man inputsize erkennen kann
+        inn = int(int((n-2)/2)-2) * int(int((n-2)/2)-2) * base_channels
+        out = base_channels
+        self.layers.append(nn.Linear(inn, out)) #methode mit der man inputsize erkennen kann
         self.layers.append(torch.nn.ReLU())
         self.layers.append(torch.nn.Dropout(p=dropout, inplace=False))
         self.layers.append(nn.Linear(base_channels, base_channels//2))

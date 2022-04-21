@@ -20,15 +20,15 @@ def my_app(cfg):
     targets = []
     metric = AllMetrics()
     for i in range(cfg.dataset.n_splits):
-        """
+
         data_labeled = LabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
                                          features_metrical=cfg.vars.features_metrical,
                                          features_categorical=cfg.vars.features_categorical,
                                          levels_categorical=cfg.vars.levels_categorical,
                                          encoding_categorical=cfg.vars.encoding_categorical,
                                          mode='val', fold=i)
-        """
-        data_labeled = PatchDataModule(path_lab=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
+
+        data_labeled_patch = PatchDataModule(path_lab=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
                             path_unlab=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
                             n=cfg.patch.parameters.n,
                             deviation_to_shrink_df=cfg.patch.parameters.deviation_to_shrink_df,
@@ -43,9 +43,9 @@ def my_app(cfg):
                                              weak_model=cfg.weak_model,
                                              mode='val', fold=i)
 
-        model = SoilModel(cfg.model.name, cfg.model.parameters, data_labeled.num_features, data_labeled.num_data)
-        model.fit(data_labeled, data_unlabeled)
-        pred, y = model.predict(data_labeled)
+        model = SoilModel(cfg.model.name, cfg.model.parameters, data_labeled_patch.num_features, data_labeled_patch.num_data)
+        model.fit(data_labeled_patch, data_unlabeled)
+        pred, y = model.predict(data_labeled_patch)
         metric.update(pred, y)
 
         predictions.append(pred)
