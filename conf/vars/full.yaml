@@ -1,28 +1,29 @@
-  targets:
-    - sand
-    - silt
-    - clay
-  features_metrical:
-    - X
-    - Y
-    #- depth
-    - precipitation
-    - temperature
-    - elevation
-    - evi
-    - lai
-    - ndvi
-    - wetness.twi
-    #- TPI
-    - slope
-  features_categorical:
-    - Geology
-    #- BK1000
-    - Landuse
-  levels_categorical:
-    Geology: [159685, 10428, 123446, 123056, 274212, 100252, 148941, 109794, 100716, 120202,
-    203380, 306066,  64956, 231284, 160434, 111329, 105051,  98443, 114554,  87132,
-    38524, 106242, 305676, 124786, 220929, 137950, 140697, 244436, 159234, 15081, 14023, 14903, 31159, 11380] #letzte 5 hinzugefügt
-    #BK1000: [106720, 137905, 112112, 143840, 113556, 148514, 142048, 87094, 54216, 114400]
-    Landuse: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-  encoding_categorical: onehot
+name: full
+targets:
+  - sand
+  - silt
+  - clay
+features_metrical:
+  - x
+  - y
+  - depth
+  - precipitation
+  - temperature
+  - elevation
+  - evi
+  - lai
+  - ndvi
+  - wetness.twi
+  - TPI
+  - slope
+features_categorical:
+  - Geology
+  - BK1000
+  - Landuse
+levels_categorical:
+  Geology: [159685, 10428, 123446, 123056, 274212, 100252, 148941, 109794, 100716, 120202,
+  203380, 306066,  64956, 231284, 160434, 111329, 105051,  98443, 114554,  87132,
+  38524, 106242, 305676, 124786, 220929, 137950, 140697, 244436, 159234]
+  BK1000: [106720, 137905, 112112, 143840, 113556, 148514, 142048, 87094, 54216, 114400]
+  Landuse: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+encoding_categorical: onehot

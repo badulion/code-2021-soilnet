@@ -3,6 +3,9 @@ defaults:
   - override /hydra/sweeper: optuna
   - override /model: catboost
 
+general:
+  study_name: search
+
 hydra:
   sweeper:
     study_name: catboost_parameter_search

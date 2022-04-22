@@ -1,0 +1,5 @@
+name: 'idw'
+parameters:
+  n_neighbors: 23
+  weights: 'distance'
+  p: 2
