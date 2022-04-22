@@ -4,24 +4,38 @@ import itertools
 
 COMMAND = """
 python run_kube.py \
---job-name soilnet-search-%s-%s \
+--job-name soilnet-evaluation-%s-%s \
 --priority research-low \
 --container-name soilnet-docker \
---image lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/soilnet-feb2022:0.5.0 \
---cpu-limit 16 \
---cpu-request 8 \
---mem-limit 16 \
---mem-request 8 \
+--image lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/soilnet-feb2022:latest \
+--cpu 8 \
+--mem 32 \
 --script main.py \
---arguments '-m +experiment=search/%s vars=%s' \
+--arguments 'model=best/%s/%s vars=%s +run=range(10) general.save_predictions=true general.study_name=evaluation -m' \
 --experiment-path '/home/ls6/dulny/soilnet-Feb2022/' \
 --data-mount-dir 'dataset/data/' \
---output-mount-dir 'sweep'
+--output-mount-dir 'results'
 
 """
 
+COMMAND = """
+python run_kube.py \
+--job-name soilnet-predvis-%s-%s \
+--priority research-low \
+--container-name soilnet-docker \
+--image lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/soilnet-feb2022:latest \
+--cpu 8 \
+--mem 128 \
+--script plot_predictions.py \
+--arguments 'model=best/%s/%s vars=%s general.study_name=vis_pred' \
+--experiment-path '/home/ls6/dulny/soilnet-Feb2022/' \
+--data-mount-dir 'dataset/data/' \
+--output-mount-dir 'results'
+"""
+
 # args list
-MODEL = ["rf", "catboost", "mlp", "idw", "knn", "vargp"]
+MODEL = ["svm", "mlp", "vargp", "rf", "catboost", "idw", "knn"]
+MODEL = ["catboost"]
 FEATURES = ["metrical", "full", "nobk"]
 
 # config
@@ -29,13 +43,16 @@ OUTPUT_FILE = "run_all.sh"
 
 
 def run_to_str(template, args):
-    return template % (args[0], args[1], args[0], args[1])
+    return template % (args[0], args[1], args[1], args[0], args[1])
 
 
 def main():
     command_list = ["#!/usr/bin/env fish\n"]
     for args in itertools.product(MODEL, FEATURES):
         command_list.append(run_to_str(COMMAND, args))
+    
+    #command_list = ["#!/usr/bin/env fish\n"]
+    #command_list.append(COMMAND)
 
     full_file = ''.join(command_list)
     with open(OUTPUT_FILE, 'w') as f:
