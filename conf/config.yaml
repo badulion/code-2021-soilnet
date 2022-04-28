@@ -25,7 +25,3 @@ hydra:
     subdir: ${hydra.job.num}
   run:
     dir: results/singlerun/${general.study_name}/${vars.name}/${model.name}/${now:%Y-%m-%d--%H-%M-%S}
-  job:
-    env_set:
-      OMP_NUM_THREADS: "1"
-      MKL_NUM_THREADS: "1"
