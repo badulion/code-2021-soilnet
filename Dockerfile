@@ -30,3 +30,4 @@ COPY model/ model/
 COPY utils/ utils/
 COPY main.py .
 COPY plot_predictions.py .
+COPY zip_vingilot.py .

@@ -33,6 +33,21 @@ python run_kube.py \
 --output-mount-dir 'results'
 """
 
+COMMAND = """
+python run_kube.py \
+--job-name soilnet-zipvis \
+--priority research-low \
+--container-name soilnet-docker \
+--image lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/soilnet-feb2022:latest \
+--cpu 4 \
+--mem 32 \
+--script zip_vingilot.py \
+--arguments '' \
+--experiment-path '/home/ls6/dulny/soilnet-Feb2022/' \
+--data-mount-dir 'dataset/data/' \
+--output-mount-dir 'results'
+"""
+
 # args list
 MODEL = ["svm", "mlp", "vargp", "rf", "catboost", "idw", "knn"]
 MODEL = ["catboost"]
@@ -49,10 +64,11 @@ def run_to_str(template, args):
 def main():
     command_list = ["#!/usr/bin/env fish\n"]
     for args in itertools.product(MODEL, FEATURES):
-        command_list.append(run_to_str(COMMAND, args))
+        pass
+        #command_list.append(run_to_str(COMMAND, args))
     
-    #command_list = ["#!/usr/bin/env fish\n"]
-    #command_list.append(COMMAND)
+    command_list = ["#!/usr/bin/env fish\n"]
+    command_list.append(COMMAND)
 
     full_file = ''.join(command_list)
     with open(OUTPUT_FILE, 'w') as f:

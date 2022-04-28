@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: soilnet-predvis-catboost-nobk
+  name: soilnet-zipvis
 spec:
   template:
     spec:
@@ -17,16 +17,16 @@ spec:
             - name: USER
               value: "dulny"
             - name: OMP_NUM_THREADS
-              value: "8"
+              value: "4"
           resources:
             limits:
-              cpu: "8"
-              memory: "128Gi"
+              cpu: "4"
+              memory: "32Gi"
             requests:
-              cpu: "8"
-              memory: "128Gi"
-          command: ["python3", "-u", "plot_predictions.py"]
-          args: ['model=best/nobk/catboost', 'vars=nobk', 'general.study_name=vis_pred']
+              cpu: "4"
+              memory: "32Gi"
+          command: ["python3", "-u", "zip_vingilot.py"]
+          args: []
           volumeMounts:
             - mountPath: "/home/ls6/dulny/soilnet-Feb2022/dataset/data/"
               name: data
