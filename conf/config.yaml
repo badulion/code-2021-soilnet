@@ -5,10 +5,12 @@ defaults:
   - patch: make_patch
 
 dataset:
-  path_labeled: dataset/data/Feb_2022/uf_lab.csv
-  path_unlabeled: dataset/data/Feb_2022/uf_unlab.csv
+  path_labeled: dataset/data/Feb_2022/fr_lab_neu.csv
+  path_unlabeled: dataset/data/Feb_2022/fr_unlab.csv
   n_splits: 10
   random_seed: 4212
+  batch-size: 16
+  #beim erstellen von dataloader diese batch-size
 
 general:
   verbose: true

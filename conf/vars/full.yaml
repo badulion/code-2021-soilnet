@@ -3,9 +3,9 @@
     - silt
     - clay
   features_metrical:
-    - X
-    - Y
-    - depth
+    - x
+    - y
+    #- depth
     - precipitation
     - temperature
     - elevation
