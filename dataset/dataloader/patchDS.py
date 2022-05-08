@@ -7,6 +7,7 @@ from hydra.utils import get_original_cwd
 from pathlib import Path
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 
 class PatchData(Dataset):
@@ -93,6 +94,13 @@ class PatchData(Dataset):
     def __len__(self):
         return len(self.patch)
 
+    def normalize(self, means=None, std=None):
+        if means is None or std is None:
+            means = np.mean(self.patch, axis=(0, -1, -2), keepdims=True)
+            std = np.std(self.patch, axis=(0, -1, -2), keepdims=True)
+        self.patch = (self.patch - means) / std
+        return means, std
+
     def get_data_as_np_array(self):
         return self.patch, self.y
 
@@ -140,7 +148,7 @@ class PatchDataModule(pl.LightningDataModule):
                 features_metrical=["x", "y"],
                 features_categorical=None,
                 num_splits=10,
-                batch_size=16,
+                batch_size=2,
                 num_workers=1,
                 deviation_to_shrink_df=100,
                 deviation_for_perfect_hit1=50,
@@ -170,7 +178,7 @@ class PatchDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         self.train = PatchData(path_lab=self.path_lab,
-                                path_unlab=self.path_lab,
+                                path_unlab=self.path_unlab,
                                 mode="train",
                                 fold=self.fold,
                                 num_splits=self.num_splits,
@@ -183,7 +191,7 @@ class PatchDataModule(pl.LightningDataModule):
                                 features_categorical=self.features_categorical)
 
         self.val = PatchData(path_lab=self.path_lab,
-                                path_unlab=self.path_lab,
+                                path_unlab=self.path_unlab,
                                 mode=self.mode,
                                 fold=self.fold,
                                 num_splits=self.num_splits,
@@ -195,7 +203,7 @@ class PatchDataModule(pl.LightningDataModule):
                                 features_metrical=self.features_metrical,
                                 features_categorical=self.features_categorical)  # 86450 85208 86174
         self.test = PatchData(path_lab=self.path_lab,
-                                path_unlab=self.path_lab,
+                                path_unlab=self.path_unlab,
                                 mode=self.mode,
                                 fold=self.fold,
                                 num_splits=self.num_splits,
@@ -208,11 +216,9 @@ class PatchDataModule(pl.LightningDataModule):
                                 features_categorical=self.features_categorical)
 
         # normalize the data
-        # self.scaler = StandardScaler()
-        # self.train.normalize(self.scaler, fit=True)
-        # self.val.normalize(self.scaler, fit=False)
-        # self.test.normalize(self.scaler, fit=False)
-
+        self.means, self.std = self.train.normalize()
+        self.val.normalize(self.means, self.std)
+        self.test.normalize(self.means, self.std)
         self._is_setup = True
 
     def train_dataloader(self):
