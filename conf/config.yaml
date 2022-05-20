@@ -11,11 +11,9 @@ dataset:
   n_splits: 10
   batch_size: 16
   random_seed: 4212
-  batch-size: 16
-  #beim erstellen von dataloader diese batch-size
 
 general:
-  verbose: true
+  verbose: false
   save_predictions: false
   save_models: false
   zip_output: false

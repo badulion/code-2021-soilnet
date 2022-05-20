@@ -11,7 +11,6 @@ import warnings
 from tqdm import trange
 import pandas as pd
 from model.SoilModel import SoilModel
-from dataset.dataloader.patchDS import PatchDataModule
 
 
 @hydra.main(config_path='conf', config_name='config')
@@ -19,52 +18,29 @@ def my_app(cfg):
     predictions = []
     targets = []
     metric = AllMetrics()
-    if cfg.model.name == 'soilcnn':
-        for i in range(cfg.dataset.n_splits):
+    for i in range(cfg.dataset.n_splits):
+        data_labeled = LabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
+                                         features_metrical=cfg.vars.features_metrical,
+                                         features_categorical=cfg.vars.features_categorical,
+                                         levels_categorical=cfg.vars.levels_categorical,
+                                         encoding_categorical=cfg.vars.encoding_categorical,
+                                         mode='val', fold=i)
 
-            data_labeled_patch = PatchDataModule(path_lab=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
-                                path_unlab=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
-                                n=cfg.patch.parameters.n,
-                                deviation_to_shrink_df=cfg.patch.parameters.deviation_to_shrink_df,
-                                deviation_for_perfect_hit1=cfg.patch.parameters.deviation_for_perfect_hit1,
-                                deviation_for_perfect_hit2=cfg.patch.parameters.deviation_for_perfect_hit2,
-                                deviation_between_two_points=cfg.patch.parameters.deviation_between_two_points,
-                                features_metrical = cfg.vars.features_metrical,
-                                features_categorical = cfg.vars.features_categorical,
-                                mode="test")
-            data_unlabeled = UnlabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
-                                                 data_labeled=data_labeled,
-                                                 weak_model=cfg.weak_model,
-                                                 mode='test', fold=i)
+        data_unlabeled = UnlabeledDataModule(path_labeled=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
+                                             path_unlabeled=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
+                                             path=os.path.join(get_original_cwd(), cfg.dataset.path_weak_labeled),
+                                             vars=cfg.vars.name,
+                                             data_labeled=data_labeled,
+                                             weak_model=cfg.weak_model,
+                                             fold=i)
 
-            model = SoilModel(cfg.model.name, cfg.model.parameters, data_labeled_patch.num_features, data_labeled_patch.num_data)
-            model.fit(data_labeled_patch, data_unlabeled)
-            pred, y = model.predict(data_labeled_patch)
-            metric.update(pred, y)
+        model = SoilModel(cfg.model.name, cfg.model.parameters, data_labeled.num_features, data_labeled.num_data)
+        model.fit(data_labeled, data_unlabeled)
+        pred, y = model.predict(data_labeled)
+        metric.update(pred, y)
 
-            predictions.append(pred)
-            targets.append(y)
-    else:
-        for i in range(cfg.dataset.n_splits):
-            data_labeled = LabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
-                                             features_metrical=cfg.vars.features_metrical,
-                                             features_categorical=cfg.vars.features_categorical,
-                                             levels_categorical=cfg.vars.levels_categorical,
-                                             encoding_categorical=cfg.vars.encoding_categorical,
-                                             mode='test', fold=i)
-
-            data_unlabeled = UnlabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
-                                                 data_labeled=data_labeled,
-                                                 weak_model=cfg.weak_model,
-                                                 mode='test', fold=i)
-
-            model = SoilModel(cfg.model.name, cfg.model.parameters, data_labeled.num_features, data_labeled.num_data)
-            model.fit(data_labeled, data_unlabeled)
-            pred, y = model.predict(data_labeled)
-            metric.update(pred, y)
-
-            predictions.append(pred)
-            targets.append(y)
+        predictions.append(pred)
+        targets.append(y)
 
     results = metric.calculate()
     model_results = {'model': cfg.model.name}

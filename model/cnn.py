@@ -8,9 +8,9 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 
 class CNNModule(nn.Module):
-    def __init__(self, input_channels: int = 16, output_size: int = 3, dropout=0.5, patch_size=5, base_channels=16):
+    def __init__(self, input_channels: int = 16, output_size: int = 3, dropout=0.5, n=5, base_channels=16):
         super().__init__()
-        n = patch_size * 2 + 1
+
         self.layers = []
         self.layers.append(nn.Conv2d(input_channels, base_channels, kernel_size=(1,1))) # n x n    n = 11
         self.layers.append(torch.nn.ReLU())
@@ -22,9 +22,7 @@ class CNNModule(nn.Module):
         self.layers.append(torch.nn.ReLU())
         self.layers.append(nn.Conv2d(base_channels * 2, base_channels, kernel_size=(1,1)))
         self.layers.append(nn.Flatten(1))
-        inn = int(int((n-2)/2)-2) * int(int((n-2)/2)-2) * base_channels
-        out = base_channels
-        self.layers.append(nn.Linear(inn, out)) #methode mit der man inputsize erkennen kann
+        self.layers.append(nn.Linear(int((n-2)/2-1 * (n-2)/2-1 * base_channels), base_channels)) #methode mit der man inputsize erkennen kann
         self.layers.append(torch.nn.ReLU())
         self.layers.append(torch.nn.Dropout(p=dropout, inplace=False))
         self.layers.append(nn.Linear(base_channels, base_channels//2))
@@ -62,7 +60,7 @@ class SoilCNNLightningModule(pl.LightningModule):
         self.learning_rate = learning_rate
         self.l2_regularization = l2_regularization
         self.loss = nn.functional.mse_loss
-        self.net = CNNModule(
+        self.net = SoilCNN(
             input_channels = input_channels, 
             output_size = output_size, 
             dropout = dropout, 
@@ -123,7 +121,7 @@ class SoilCNNLightningModule(pl.LightningModule):
 
 class SoilCNN:
     def __init__(self,
-                 num_features,
+                 input_channels, 
                  output_size: int = 3, 
                  dropout: float = 0.5, 
                  patch_size: int = 5, 
@@ -133,10 +131,10 @@ class SoilCNN:
                  n_epochs=100):
 
         #save parameters
-        self.num_features = num_features
+        self.num_features = input_channels
 
         self.model = SoilCNNLightningModule(
-                input_channels = num_features,
+                input_channels = input_channels, 
                 output_size = output_size,
                 patch_size = patch_size, 
                 base_channels = base_channels,
