@@ -1,0 +1,5 @@
+name: 'svm'
+parameters:
+  kernel: 'rbf'
+  C: 0.1352363742623866
+  epsilon: 0.01507068263978124

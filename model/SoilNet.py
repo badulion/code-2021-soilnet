@@ -39,13 +39,16 @@ class SoilNNModule(pl.LightningModule):
                  hidden_layers: int = 6,
                  dropout=0.0,
                  learning_rate=0.001,
-                 l2_regularization=0.0):
+                 l2_regularization=0.0,
+                 val_metric="val_loss"):
         super().__init__()
 
         self.learning_rate = learning_rate
         self.l2_regularization = l2_regularization
         self.loss = nn.functional.mse_loss
+        self.val_metric = val_metric
         self.net = SoilNN(
+            dropout=dropout,
             input_size=input_size,
             output_size=output_size,
             hidden_size=hidden_size,
@@ -84,7 +87,7 @@ class SoilNNModule(pl.LightningModule):
         loss = self.loss(pred, y)
 
         # Logging to TensorBoard by default
-        self.log('val_loss', loss, prog_bar=True)
+        self.log(self.val_metric, loss, prog_bar=True)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -128,7 +131,7 @@ class SoilMLP:
         )
         self.checkpoint_callback = ModelCheckpoint(monitor="val_loss")
         self.early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=0.00,
-                                                 patience=5, verbose=False, mode="min")
+                                                 patience=20, verbose=False, mode="min")
         self.trainer = pl.Trainer(
              max_epochs=n_epochs,
              num_sanity_val_steps=0,
@@ -152,6 +155,7 @@ class SoilNet:
                  hidden_layers: int = 6,
                  dropout=0.5,
                  learning_rate=0.001,
+                 l2_regularization=0.0,
                  n_epochs=100):
 
         self.model = SoilNNModule(
@@ -161,20 +165,37 @@ class SoilNet:
              hidden_layers=hidden_layers,
              dropout=dropout,
              learning_rate=learning_rate,
+             l2_regularization=l2_regularization,
         )
-        early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=0.00,
-                                            patience=5, verbose=False, mode="min")
-        self.trainer = pl.Trainer(
+
+        self.checkpoint_callback_pretrain = ModelCheckpoint(monitor="val_loss")
+        early_stop_callback_pretrain = EarlyStopping(monitor="val_loss", min_delta=0.00,
+                                            patience=20, verbose=False, mode="min")
+
+        self.checkpoint_callback_finetune = ModelCheckpoint(monitor="val_loss")
+        early_stop_callback_finetune = EarlyStopping(monitor="val_loss", min_delta=0.00,
+                                            patience=20, verbose=False, mode="min")
+        self.trainer_pretrain = pl.Trainer(
+             max_epochs=n_epochs,
+             num_sanity_val_steps=0,
+             val_check_interval=100,
+             callbacks=[self.checkpoint_callback_pretrain, early_stop_callback_pretrain],
+        )
+
+        self.trainer_finetune = pl.Trainer(
              max_epochs=n_epochs,
              num_sanity_val_steps=0,
              val_check_interval=10,
-             callbacks=[early_stop_callback],
+             callbacks=[self.checkpoint_callback_finetune, early_stop_callback_finetune],
         )
 
     def fit(self, train_datamodule, pretrain_datamodule):
-        self.trainer.fit(self.model, pretrain_datamodule)
-        self.trainer.fit(self.model, train_datamodule)
+        self.trainer_pretrain.fit(self.model, pretrain_datamodule)
+        self.model = SoilNNModule.load_from_checkpoint(self.checkpoint_callback_pretrain.best_model_path, learning_rate=0.0001)
+
+        self.trainer_finetune.fit(self.model, train_datamodule)
+        self.model = SoilNNModule.load_from_checkpoint(self.checkpoint_callback_finetune.best_model_path)
 
     def predict(self, datamodule):
-        preds = self.trainer.predict(self.model, datamodule)
+        preds = self.trainer_finetune.predict(self.model, datamodule)
         return torch.vstack(preds).cpu().detach().numpy()

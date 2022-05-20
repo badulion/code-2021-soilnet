@@ -10,21 +10,21 @@ spec:
         - name: <CONTAINER_NAME>
           image: <IMAGE>
           workingDir: <EXPERIMENT_PATH>
-          imagePullPolicy: "IfNotPresent"
+          imagePullPolicy: "Always"
           env:
             - name: LOGNAME
               value: "dulny"
             - name: USER
               value: "dulny"
             - name: OMP_NUM_THREADS
-              value: "2"
+              value: "<CPU>"
           resources:
             limits:
-              cpu: "<CPU_LIMIT>"
-              memory: "<MEM_LIMIT>"
+              cpu: "<CPU>"
+              memory: "<MEM>"
             requests:
-              cpu: "<CPU_REQUEST>"
-              memory: "<MEM_REQUEST>"
+              cpu: "<CPU>"
+              memory: "<MEM>"
           command: ["python3", "-u", "<SCRIPT>"]
           args: <ARGUMENTS>
           volumeMounts:

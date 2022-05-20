@@ -1,0 +1,13 @@
+name: 'catboost'
+parameters:
+  loss_function: MultiRMSE
+  bootstrap_type: "Bayesian"
+  grow_policy: "Lossguide"
+  verbose: False
+  iterations: 985
+  learning_rate: 0.039637010716652724
+  depth: 7
+  l2_leaf_reg: 0.06713321221479923
+  rsm: 0.5134186607201374
+  bagging_temperature: 0.6655199275833213
+  random_strength: 0.2991510205579961

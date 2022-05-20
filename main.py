@@ -22,13 +22,6 @@ def my_app(cfg):
     if cfg.model.name == 'soilcnn':
         for i in range(cfg.dataset.n_splits):
 
-            data_labeled = LabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
-                                             features_metrical=cfg.vars.features_metrical,
-                                             features_categorical=cfg.vars.features_categorical,
-                                             levels_categorical=cfg.vars.levels_categorical,
-                                             encoding_categorical=cfg.vars.encoding_categorical,
-                                             mode='test', fold=i)
-
             data_labeled_patch = PatchDataModule(path_lab=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
                                 path_unlab=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
                                 n=cfg.patch.parameters.n,

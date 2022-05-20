@@ -30,7 +30,7 @@ class LabeledSoilData(Dataset):
         self.path = path
         self.fold = fold
 
-        assert mode in ["train", "val", "test"]
+        assert mode in ["train", "val", "test", "all"]
         self.mode = mode
 
         # save parameters
@@ -75,15 +75,18 @@ class LabeledSoilData(Dataset):
         data_splits = self._split_data(data)
 
         test_fold = fold
-        val_fold = (fold + 1) % 10
-        train_folds = [i for i in range(10) if i != test_fold and i != val_fold]
+        val_fold = (fold + 1) % self.num_splits
+        train_folds = [i for i in range(self.num_splits) if i != test_fold and i != val_fold]
+        all_folds = [i for i in range(self.num_splits)]
 
         if self.mode == "test":
             data = data_splits[test_fold]
         elif self.mode == "val":
             data = data_splits[val_fold]
-        else:
+        elif self.mode == "train":
             data = pd.concat([data_splits[i] for i in train_folds])
+        else:
+            data = pd.concat([data_splits[i] for i in all_folds])
 
         if self.bezirk is not None:
             return data.loc[[b in self.bezirk for b in data[self.bezirk_column]], :]
@@ -95,29 +98,32 @@ class LabeledSoilData(Dataset):
         return targets / np.sum(targets, axis=1, keepdims=True)
 
     def _setup_cat_features(self):
-        if self.features_categorical is None:
+        if not self.features_categorical:
             return np.empty((len(self.data), 0), dtype=np.float32)
+        else:
+            x_categorical = self.data[self.features_categorical].values.astype(str)
 
-        x_categorical = self.data[self.features_categorical].values.astype(str)
-
-        cat_encoder = OneHotEncoder(categories=[self.levels_categorical[feature] for feature in self.features_categorical],
-                                    sparse=False,
-                                    dtype=np.float32)
-
-        x_categorical = cat_encoder.fit_transform(x_categorical)
         return x_categorical
 
     def _setup_metric_features(self):
         x_metric = self.data[self.features_metrical].values.astype(np.float32)
         return x_metric
 
-    def normalize(self, scaler=None, fit=False):
+    def transform(self, scaler=None, fit=False):
         if scaler == None:
             scaler = self._create_scaler()
 
         func = scaler.fit_transform if fit else scaler.transform
-
         self.x_metric = func(self.x_metric)
+
+        if not self.features_categorical:
+            self.x_categorical = np.empty((len(self.data), 0), dtype=np.float32)
+        else:
+            self.cat_encoder = OneHotEncoder(categories=[self.levels_categorical[feature] for feature in self.features_categorical],
+                                             sparse=False,
+                                             dtype=np.float32)
+
+            self.x_categorical = self.cat_encoder.fit_transform(self.x_categorical)
 
         self.x = np.hstack([self.x_metric, self.x_categorical])
 
@@ -126,16 +132,23 @@ class LabeledSoilData(Dataset):
         return scaler
 
     def __getitem__(self, i: int) -> tuple:
-        x = self.x[i, :]
-        y = self.y[i, :]
+        x = self.x[i]
+        y = self.y[i]
 
         return x, y
 
     def __len__(self) -> int:
         return len(self.x)
 
-    def inverse_normalize(self, scaler):
-        self.x = scaler.inverse_transform(self.x)
+    def inverse_transform(self, scaler):
+        self.x_metric = scaler.inverse_transform(self.x_metric)
+
+        if not self.features_categorical:
+            self.x_categorical = np.empty((len(self.data), 0), dtype=np.float32)
+        else:
+            self.x_categorical = self.cat_encoder.inverse_transform(self.x_categorical)
+
+        self.x = np.hstack([self.x_metric, self.x_categorical])
 
     def get_data_as_np_array(self):
         return self.x, self.y
@@ -222,13 +235,21 @@ class LabeledDataModule(pl.LightningDataModule):
                                     num_splits=self.num_splits,
                                     bezirk=None)
 
-        # normalize the data
-        self.scaler = StandardScaler()
-        self.train.normalize(self.scaler, fit=True)
-        self.val.normalize(self.scaler, fit=False)
-        self.test.normalize(self.scaler, fit=False)
-
         self._is_setup = True
+
+        # normalize the data
+        self.transformed_data()
+
+    def transformed_data(self):
+        self.scaler = StandardScaler()
+        self.train.transform(self.scaler, fit=True)
+        self.val.transform(self.scaler, fit=False)
+        self.test.transform(self.scaler, fit=False)
+
+    def original_data(self):
+        self.train.inverse_transform(self.scaler)
+        self.val.inverse_transform(self.scaler)
+        self.test.inverse_transform(self.scaler)
 
     def train_dataloader(self):
         return DataLoader(self.train, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)

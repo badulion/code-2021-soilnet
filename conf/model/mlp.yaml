@@ -1,9 +1,9 @@
 name: 'mlp'
 parameters:
-   hidden_size:  512
-   hidden_layers:  4
+   hidden_size:  64
+   hidden_layers:  1
    num_tasks: 3
    dropout: 0.0
    learning_rate: 0.001
-   l2_regularization: 0.001
+   l2_regularization: 0.01
    n_epochs: 100
