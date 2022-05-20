@@ -9,6 +9,7 @@ dataset:
   path_weak_labeled: dataset/data/Feb_2022/weak_labels/
   mode: val
   n_splits: 10
+  batch_size: 16
   random_seed: 4212
 
 general:
