@@ -1,5 +1,5 @@
 defaults:
-  - model: soilnet
+  - model: rf
   - vars: full
   - model@weak_model: best/full/catboost
 
