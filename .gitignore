@@ -5,3 +5,4 @@ __pycache__/
 /multirun/
 /soilnet-venv/
 /run_all.sh
+/results/
