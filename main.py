@@ -39,6 +39,7 @@ def my_app(cfg):
                                 features_metrical = cfg.vars.features_metrical,
                                 features_categorical = cfg.vars.features_categorical,
                                 mode="test")
+                                
             data_unlabeled = UnlabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_weak_labeled),  
                                                  path_labeled=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),  
                                                  path_unlabeled=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),  
