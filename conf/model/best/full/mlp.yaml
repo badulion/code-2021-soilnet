@@ -1,4 +1,4 @@
-name: 'soilnet'
+name: 'mlp'
 parameters:
    hidden_size:  128
    hidden_layers:  10

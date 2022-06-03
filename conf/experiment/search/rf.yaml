@@ -3,6 +3,9 @@ defaults:
   - override /hydra/sweeper: optuna
   - override /model: rf
 
+general:
+  study_name: search
+
 hydra:
   sweeper:
     study_name: rf_parameter_search

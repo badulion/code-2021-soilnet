@@ -3,6 +3,9 @@ defaults:
   - override /hydra/sweeper: optuna
   - override /model: sklearn_gp
 
+general:
+  study_name: search
+
 hydra:
   sweeper:
     study_name: sklearn_gp_parameter_search

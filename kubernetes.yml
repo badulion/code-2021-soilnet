@@ -1,36 +1,36 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: soilnet-search-vargp-nobk
+  name: soilnet-zipvis
 spec:
   template:
     spec:
       priorityClassName: research-low
       containers:
         - name: soilnet-docker
-          image: lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/soilnet-feb2022:0.5.0
+          image: lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/soilnet-feb2022:latest
           workingDir: /home/ls6/dulny/soilnet-Feb2022/
-          imagePullPolicy: "IfNotPresent"
+          imagePullPolicy: "Always"
           env:
             - name: LOGNAME
               value: "dulny"
             - name: USER
               value: "dulny"
             - name: OMP_NUM_THREADS
-              value: "2"
+              value: "4"
           resources:
             limits:
-              cpu: "16"
-              memory: "16Gi"
+              cpu: "4"
+              memory: "32Gi"
             requests:
-              cpu: "8"
-              memory: "8Gi"
-          command: ["python3", "-u", "main.py"]
-          args: ['-m', '+experiment=search/vargp', 'vars=nobk']
+              cpu: "4"
+              memory: "32Gi"
+          command: ["python3", "-u", "zip_vingilot.py"]
+          args: []
           volumeMounts:
             - mountPath: "/home/ls6/dulny/soilnet-Feb2022/dataset/data/"
               name: data
-            - mountPath: "/home/ls6/dulny/soilnet-Feb2022/sweep"
+            - mountPath: "/home/ls6/dulny/soilnet-Feb2022/results"
               name: output
       imagePullSecrets:
         - name: lsx-staff-registry
@@ -49,6 +49,6 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
             user: dulny  # <namespace>
-            path: "/home/ls6/dulny/soilnet-Feb2022/sweep" # The path you want to mount
+            path: "/home/ls6/dulny/soilnet-Feb2022/results" # The path you want to mount
             secretRef: # The name of the secret for auth. Is always "ceph-secret"
               name: ceph-secret

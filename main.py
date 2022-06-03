@@ -39,10 +39,14 @@ def my_app(cfg):
                                 features_metrical = cfg.vars.features_metrical,
                                 features_categorical = cfg.vars.features_categorical,
                                 mode="test")
-            data_unlabeled = UnlabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
+                                
+            data_unlabeled = UnlabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_weak_labeled),  
+                                                 path_labeled=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),  
+                                                 path_unlabeled=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),  
                                                  data_labeled=data_labeled,
                                                  weak_model=cfg.weak_model,
-                                                 mode='test', fold=i)
+                                                 vars=cfg.vars.name,
+                                                 fold=i)
 
             model = SoilModel(cfg.model.name, cfg.model.parameters, data_labeled_patch.num_features, data_labeled_patch.num_data)
             model.fit(data_labeled_patch, data_unlabeled)
@@ -60,11 +64,14 @@ def my_app(cfg):
                                              encoding_categorical=cfg.vars.encoding_categorical,
                                              mode='test', fold=i)
 
-            data_unlabeled = UnlabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
+            data_unlabeled = UnlabeledDataModule(path=os.path.join(get_original_cwd(), cfg.dataset.path_weak_labeled),  
+                                                 path_labeled=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),  
+                                                 path_unlabeled=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),  
                                                  data_labeled=data_labeled,
                                                  weak_model=cfg.weak_model,
-                                                 mode='test', fold=i)
-
+                                                 vars=cfg.vars.name,
+                                                 fold=i)
+            data_unlabeled=None
             model = SoilModel(cfg.model.name, cfg.model.parameters, data_labeled.num_features, data_labeled.num_data)
             model.fit(data_labeled, data_unlabeled)
             pred, y = model.predict(data_labeled)

@@ -1,7 +1,5 @@
 import torch
 import torch.nn as nn
-from torchviz.dot import make_dot
-from graphviz import Digraph
 import torch
 from torch.autograd import Variable, Function
 

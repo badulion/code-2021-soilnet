@@ -6,10 +6,8 @@ DEFAULT_CONFIG = {
     'PRIORITY': 'research-low',
     'CONTAINER_NAME': 'test',
     'IMAGE': 'test',
-    'CPU_LIMIT': '2',
-    'CPU_REQUEST': '2',
-    'MEM_LIMIT': '2Gi',
-    'MEM_REQUEST': '2Gi',
+    'CPU': '2',
+    'MEM': '2Gi',
     'SCRIPT': "test.py",
     'ARGUMENTS': "",
     'DATA_MOUNT_PATH': "~/",
@@ -27,14 +25,10 @@ def parse_arguments():
                         help="Name of the container.")
     parser.add_argument("--image", type=str,
                         help="Path to the image in the registry.")
-    parser.add_argument("--cpu-limit", type=int, default=2,
-                        help="Upper limit of cpu cores the container will use.")
-    parser.add_argument("--cpu-request", type=int, default=1,
-                        help="The requested number of cpu cores the container will use.")
-    parser.add_argument("--mem-limit", type=int, default=4,
-                        help="Upper limit of memory the container will use (in GiB).")
-    parser.add_argument("--mem-request", type=int, default=2,
-                        help="The requested memory the container will use.")
+    parser.add_argument("--cpu", type=int, default=2,
+                        help="Number of cpu cores the container will use.")
+    parser.add_argument("--mem", type=int, default=4,
+                        help="Mmemory the container will use (in GiB).")
     parser.add_argument("--script", type=str,
                         help="The script to run.")
     parser.add_argument("--arguments", type=str, default="",
@@ -57,10 +51,8 @@ def main(args):
     template = template.replace("<PRIORITY>", args.priority)
     template = template.replace("<CONTAINER_NAME>", args.container_name)
     template = template.replace("<IMAGE>", args.image)
-    template = template.replace("<CPU_LIMIT>", f"{args.cpu_limit}")
-    template = template.replace("<CPU_REQUEST>", f"{args.cpu_request}")
-    template = template.replace("<MEM_LIMIT>", f"{args.mem_limit}Gi")
-    template = template.replace("<MEM_REQUEST>", f"{args.mem_request}Gi")
+    template = template.replace("<CPU>", f"{args.cpu}")
+    template = template.replace("<MEM>", f"{args.mem}Gi")
     template = template.replace("<SCRIPT>", args.script)
     template = template.replace("<ARGUMENTS>", str(args.arguments.split()))
     template = template.replace("<EXPERIMENT_PATH>", args.experiment_path)
