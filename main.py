@@ -31,7 +31,7 @@ def my_app(cfg):
 
             data_labeled_patch = PatchDataModule(path_lab=os.path.join(get_original_cwd(), cfg.dataset.path_labeled),
                                 path_unlab=os.path.join(get_original_cwd(), cfg.dataset.path_unlabeled),
-                                n=cfg.patch.parameters.n,
+                                n=cfg.model.parameters.patch_size,
                                 deviation_to_shrink_df=cfg.patch.parameters.deviation_to_shrink_df,
                                 deviation_for_perfect_hit1=cfg.patch.parameters.deviation_for_perfect_hit1,
                                 deviation_for_perfect_hit2=cfg.patch.parameters.deviation_for_perfect_hit2,

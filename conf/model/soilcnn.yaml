@@ -1,6 +1,6 @@
 name: 'soilcnn'
 parameters:
-  patch_size: 5
+  patch_size: 9
   base_channels: 32
   output_size: 3
   dropout: 0.35
