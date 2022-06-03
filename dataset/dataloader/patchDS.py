@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
 import os
-import hydra
 from torch.utils.data.dataset import Dataset
 from utils import generate_patch
 from hydra.utils import get_original_cwd
 from pathlib import Path
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 
 class PatchData(Dataset):
@@ -23,7 +23,8 @@ class PatchData(Dataset):
                 deviation_for_perfect_hit2,
                 deviation_between_two_points,
                 features_metrical,
-                features_categorical
+                features_categorical,
+                 targets=["sand", "silt", "clay"]
                  ):
 
         self.n = n
@@ -43,21 +44,30 @@ class PatchData(Dataset):
         self.data_lab = None
         self.data_unlab = None
         self.amount_params = len(self.all_features)
+        self.targets = targets
+
+        # zu verändern:
+        # get_item target --
+        # inn cnn --
+        # generate_patch() (float32) --
+        # get_data_as_np_array() --
 
         # generate path for patch
-        filestart = "../data/Feb_2022/"
+        filestart = "dataset/data/Feb_2022/"
         fileend = "patch_" + str(self.n) + "_" + str(self.all_features) + self.mode
         file = filestart + fileend + ".npy"
         self.patch_path = Path(os.path.join(get_original_cwd(), file))
-
+        self.data_lab = self._setup_data(self.fold)
+        self.y = self._setup_targets()
         # If patch is already generated, return patch through existing file, else generate patch
         if not self.patch_path.is_file():
             self.generate_patch()
-        self.patch = np.load(self.patch_path)
+        else:
+            self.patch = np.load(self.patch_path)
+            self.patch = np.array(self.patch, dtype=np.float32)
 
     def generate_patch(self):
         # prepare data
-        self.data_lab = self._setup_data(self.fold)
         self.data_unlab = pd.read_csv(self.path_unlab)
         # prepare features
         self.data_lab = self.data_lab[self.all_features]
@@ -74,15 +84,29 @@ class PatchData(Dataset):
                                                        )
 
         result = patchgenerator.generate_patch()
-        self.patch = result
+        self.patch = np.array(result, dtype=np.float32)
         np.save(self.patch_path, result)
         return
 
     def __getitem__(self, item):
-        return self.patch[item]
+        return self.patch[item], self.y[item]
 
     def __len__(self):
-        return len(self.data_lab.index)
+        return len(self.patch)
+
+    def normalize(self, means=None, std=None):
+        if means is None or std is None:
+            means = np.mean(self.patch, axis=(0, -1, -2), keepdims=True)
+            std = np.std(self.patch, axis=(0, -1, -2), keepdims=True)
+        self.patch = (self.patch - means) / std
+        return means, std
+
+    def get_data_as_np_array(self):
+        return self.patch, self.y
+
+    def _setup_targets(self):
+        targets = self.data_lab[self.targets].values.astype(np.float32)
+        return targets / np.sum(targets, axis=1, keepdims=True)
 
     def _split_data(self, df, strategy="location"):
         assert strategy in ["location", "sample"]
@@ -124,7 +148,7 @@ class PatchDataModule(pl.LightningDataModule):
                 features_metrical=["x", "y"],
                 features_categorical=None,
                 num_splits=10,
-                batch_size=16,
+                batch_size=2,
                 num_workers=1,
                 deviation_to_shrink_df=100,
                 deviation_for_perfect_hit1=50,
@@ -154,7 +178,7 @@ class PatchDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         self.train = PatchData(path_lab=self.path_lab,
-                                path_unlab=self.path_lab,
+                                path_unlab=self.path_unlab,
                                 mode="train",
                                 fold=self.fold,
                                 num_splits=self.num_splits,
@@ -167,7 +191,7 @@ class PatchDataModule(pl.LightningDataModule):
                                 features_categorical=self.features_categorical)
 
         self.val = PatchData(path_lab=self.path_lab,
-                                path_unlab=self.path_lab,
+                                path_unlab=self.path_unlab,
                                 mode=self.mode,
                                 fold=self.fold,
                                 num_splits=self.num_splits,
@@ -179,7 +203,7 @@ class PatchDataModule(pl.LightningDataModule):
                                 features_metrical=self.features_metrical,
                                 features_categorical=self.features_categorical)  # 86450 85208 86174
         self.test = PatchData(path_lab=self.path_lab,
-                                path_unlab=self.path_lab,
+                                path_unlab=self.path_unlab,
                                 mode=self.mode,
                                 fold=self.fold,
                                 num_splits=self.num_splits,
@@ -192,11 +216,9 @@ class PatchDataModule(pl.LightningDataModule):
                                 features_categorical=self.features_categorical)
 
         # normalize the data
-        # self.scaler = StandardScaler()
-        # self.train.normalize(self.scaler, fit=True)
-        # self.val.normalize(self.scaler, fit=False)
-        # self.test.normalize(self.scaler, fit=False)
-
+        self.means, self.std = self.train.normalize()
+        self.val.normalize(self.means, self.std)
+        self.test.normalize(self.means, self.std)
         self._is_setup = True
 
     def train_dataloader(self):
@@ -211,7 +233,33 @@ class PatchDataModule(pl.LightningDataModule):
     def predict_dataloader(self):
         return DataLoader(self.test, batch_size=self.batch_size, num_workers=self.num_workers)
 
+    @property
+    def num_features(self):
+        return self.num_features_metrical + self.num_features_categorical
 
+    @property
+    def num_features_metrical(self):
+        return len(self.features_metrical)
+
+    @property
+    def num_features_categorical(self):
+        return len(self.features_categorical)
+
+    @property
+    def num_data(self, mode="train"):
+        if not self._is_setup:
+            self.setup()
+        if mode == "train":
+            return len(self.train)
+        elif mode == "val":
+            return len(self.val)
+        else:
+            return len(self.test)
+
+    @property
+    def is_setup(self):
+        return self._is_setup
+"""
 @hydra.main(config_path='../../conf', config_name='config')
 def test(cfg):
     path_lab = '../../' + cfg.dataset.path_labeled
@@ -232,3 +280,4 @@ def test(cfg):
 
 if __name__ == "__main__":
     test()
+    """

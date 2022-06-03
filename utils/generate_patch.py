@@ -37,12 +37,12 @@ class Patchgenerator():
 
     def reduce_df(self, deviation_to_shrink_df, x, y, n, df):
         max_deviation = deviation_to_shrink_df * n
-        df_new = df.loc[(df["X"] < x + max_deviation) & (df["Y"] < y + max_deviation) & (df["X"] > x - max_deviation) & (df["Y"] > y - max_deviation)]
+        df_new = df.loc[(df['x'] < x + max_deviation) & (df['y'] < y + max_deviation) & (df['x'] > x - max_deviation) & (df['y'] > y - max_deviation)]
         return df_new
 
     def create_points(self, df):
-        punkte_x = df['X'].to_numpy().tolist()
-        punkte_y = df['Y'].to_numpy().tolist()
+        punkte_x = df['x'].to_numpy().tolist()
+        punkte_y = df['y'].to_numpy().tolist()
         return punkte_x, punkte_y
 
     def create_2D_list(self, n):
@@ -102,8 +102,8 @@ class Patchgenerator():
         return nump_result
 
     def find_next_point(self, df, current_point, direction):
-        x = current_point['X']
-        y = current_point['Y']
+        x = current_point['x']
+        y = current_point['y']
         if direction == 0: #east
             result = self.find_best_point(df, x, y + self.deviation_between_two_points)
         elif direction == 1: #south
@@ -116,18 +116,18 @@ class Patchgenerator():
 
     def find_best_point(self, df, x, y):
         # Dataframe is reduced to a few points, optimally to one point. If it is only one point, return that point as result.
-        df_few_datapoints = df.loc[(df["X"] < x + self.deviation_for_perfect_hit1) &
-                                       (df["Y"] < y + self.deviation_for_perfect_hit1) &
-                                       (df["X"] > x - self.deviation_for_perfect_hit1) &
-                                       (df["Y"] > y - self.deviation_for_perfect_hit1)]
+        df_few_datapoints = df.loc[(df['x'] < x + self.deviation_for_perfect_hit1) &
+                                       (df['y'] < y + self.deviation_for_perfect_hit1) &
+                                       (df['x'] > x - self.deviation_for_perfect_hit1) &
+                                       (df['y'] > y - self.deviation_for_perfect_hit1)]
         if df_few_datapoints.shape == (1, self.amount_params):
             return df_few_datapoints.iloc[0]
         else:
             #Dataframe is reduced to even fewer points, optimally to one point. If it is only one point, return that point as result.
-            df_onepoint = df.loc[(df["X"] < x + self.deviation_for_perfect_hit2) &
-                                       (df["Y"] < y + self.deviation_for_perfect_hit2) &
-                                       (df["X"] > x - self.deviation_for_perfect_hit2) &
-                                       (df["Y"] > y - self.deviation_for_perfect_hit2)]
+            df_onepoint = df.loc[(df['x'] < x + self.deviation_for_perfect_hit2) &
+                                       (df['y'] < y + self.deviation_for_perfect_hit2) &
+                                       (df['x'] > x - self.deviation_for_perfect_hit2) &
+                                       (df['y'] > y - self.deviation_for_perfect_hit2)]
         if df_onepoint.shape == (1, self.amount_params):
             return df_onepoint.iloc[0]
         # if there are no points in df_onepoint, use df_few_datapoints to get the closest point
@@ -139,10 +139,10 @@ class Patchgenerator():
         result = 0
         result_score = 99999
         for i in range(len(df_new)):
-            if (abs(df_new.iloc[i]['X'] - x) + abs(df_new.iloc[i]['Y'] - y)) < result_score:
+            if (abs(df_new.iloc[i]['x'] - x) + abs(df_new.iloc[i]['y'] - y)) < result_score:
                 test = False
                 result = df_new.iloc[i]
-                result_score = abs(df_new.iloc[i]['X'] - x) + abs(df_new.iloc[i]['Y'] - y)
+                result_score = abs(df_new.iloc[i]['x'] - x) + abs(df_new.iloc[i]['y'] - y)
         if test:
             # Error, no best point was found
             print("Error on point (x: " + str(x) + " y: " + str(y) + ")")
