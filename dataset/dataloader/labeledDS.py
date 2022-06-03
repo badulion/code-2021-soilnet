@@ -99,10 +99,11 @@ class LabeledSoilData(Dataset):
 
     def _setup_cat_features(self):
         if not self.features_categorical:
-            return np.empty((len(self.data), 0), dtype=np.float32)
+            x_categorical = np.empty((len(self.data), 0), dtype=np.float32)
         else:
             x_categorical = self.data[self.features_categorical].values.astype(str)
 
+        self.categories = [self.levels_categorical[feature] for feature in self.features_categorical]
         return x_categorical
 
     def _setup_metric_features(self):
@@ -119,7 +120,7 @@ class LabeledSoilData(Dataset):
         if not self.features_categorical:
             self.x_categorical = np.empty((len(self.data), 0), dtype=np.float32)
         else:
-            self.cat_encoder = OneHotEncoder(categories=[self.levels_categorical[feature] for feature in self.features_categorical],
+            self.cat_encoder = OneHotEncoder(categories=self.categories,
                                              sparse=False,
                                              dtype=np.float32)
 
@@ -165,10 +166,42 @@ class LabeledSoilData(Dataset):
             return x_shuffled, self.y
         else:
             feature_id -= len(self.features_metrical)
+            dummy_feature_lengths = [len(c) for c in self.categories]
+            dummy_feature_indices = np.cumsum(np.pad(dummy_feature_lengths, (1, 0), "constant"))
+            feature_dummy_ids = range(dummy_feature_indices[feature_id],dummy_feature_indices[feature_id+1])
             x_categorical = self.x_categorical.copy()
-            x_categorical[:, feature_id] = x_categorical[indices, feature_id]
+            x_categorical[:, feature_dummy_ids] = x_categorical[:,feature_dummy_ids][indices]
             x_shuffled = np.hstack([self.x_metric, x_categorical])
             return x_shuffled, self.y
+
+    def get_feature_name(self, feature_id):
+        assert feature_id < len(self.features_metrical) + len(self.features_categorical)
+        if feature_id < len(self.features_metrical):
+            return self.features_metrical[feature_id]
+        else:
+            feature_id -= len(self.features_metrical)
+            return self.features_categorical[feature_id]
+
+
+
+    @property
+    def num_features(self):
+        return self.num_features_metrical+self.num_features_categorical
+
+    @property
+    def num_features_metrical(self):
+        return len(self.features_metrical)
+
+    def num_data(self):
+        return len(self.x)
+
+    @property
+    def num_features_categorical(self):
+        return len(self.features_categorical)
+        if self.levels_categorical is None or self.features_categorical is None:
+            return 0
+        else:
+            return sum([len(self.levels_categorical[feature]) for feature in self.features_categorical])
 
 
 class LabeledDataModule(pl.LightningDataModule):
