@@ -130,7 +130,8 @@ class SoilCNN:
                  base_channels: float = 16,
                  learning_rate=0.001,
                  l2_regularization=0.0,
-                 n_epochs=100):
+                 n_epochs=100,
+                 gpus=0):
 
         #save parameters
         self.num_features = num_features
@@ -151,6 +152,7 @@ class SoilCNN:
              max_epochs=n_epochs,
              num_sanity_val_steps=0,
              callbacks=[self.early_stop_callback, self.checkpoint_callback],
+             gpus=gpus,
         )
 
     def fit(self, datamodule):
