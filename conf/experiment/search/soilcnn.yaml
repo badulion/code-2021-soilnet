@@ -9,7 +9,7 @@ general:
 hydra:
   sweeper:
     study_name: cnn_parameter_search
-    n_trials: 500
+    n_trials: 100
     sampler:
       seed: 123
     direction: minimize

@@ -11,7 +11,9 @@ DEFAULT_CONFIG = {
     'SCRIPT': "test.py",
     'ARGUMENTS': "",
     'DATA_MOUNT_PATH': "~/",
-    'OUTPUT_MOUNT_PATH': "~/"
+    'OUTPUT_MOUNT_PATH': "~/",
+    'LOGNAME': "dulny",
+    'USER': "dulny"
 }
 
 
@@ -39,6 +41,10 @@ def parse_arguments():
                         help="Directory within the main experiment directory to mount.")
     parser.add_argument("--data-mount-dir", type=str,
                         help="Directory within the main experiment directory to mount.")
+    parser.add_argument("--user-name", type=str,
+                        help="Name of the User.")
+    parser.add_argument("--log-name", type=str,
+                        help="Name of the Log.")
     args = parser.parse_args()
     return args
 

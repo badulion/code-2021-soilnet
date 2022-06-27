@@ -6,7 +6,7 @@ targets:
 features_metrical:
   - x
   - y
-  - depth
+  #- depth
   - precipitation
   - temperature
   - elevation

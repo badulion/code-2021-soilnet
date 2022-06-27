@@ -1,9 +1,9 @@
 name: 'rf'
 parameters:
   criterion: "squared_error"
-  n_estimators: 693
-  max_features: 0.7098840601742538
+  n_estimators: 588
+  max_features: 0.6140389726252478
   min_samples_leaf: 1
-  max_samples: 0.9624600131519959
+  max_samples: 0.9999911415338933
   max_depth: null
   n_jobs: -1

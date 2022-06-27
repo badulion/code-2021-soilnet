@@ -1,4 +1,4 @@
-name: 'knn'
+knnname: 'knn'
 parameters:
   n_neighbors: 10
   weights: 'uniform'

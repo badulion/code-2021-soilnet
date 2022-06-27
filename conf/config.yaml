@@ -1,10 +1,11 @@
 defaults:
-  - model: soilnet
+  - model: soilcnn
   - vars: full
-  - model@weak_model: best/full/catboost
+  - model@weak_model: best/cnn/rf
+  - patch: make_patch
 
 dataset:
-  path_labeled: dataset/data/Feb_2022/fr_lab.csv
+  path_labeled: dataset/data/Feb_2022/fr_lab_neu_mit_0_bis_4.csv
   path_unlabeled: dataset/data/Feb_2022/fr_unlab.csv
   path_weak_labeled: dataset/data/Feb_2022/weak_labels/
   mode: val

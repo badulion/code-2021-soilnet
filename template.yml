@@ -13,9 +13,9 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: LOGNAME
-              value: "dulny"
+              value: "<LOGNAME>"
             - name: USER
-              value: "dulny"
+              value: "<USER>"
             - name: OMP_NUM_THREADS
               value: "<CPU>"
           resources:
@@ -40,7 +40,7 @@ spec:
           cephfs:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
-            user: dulny  # <namespace>
+            user: <USER>  # <namespace>
             path: "<DATA_MOUNT_PATH>" # The path you want to mount
             secretRef: # The name of the secret for auth. Is always "ceph-secret"
               name: ceph-secret
@@ -48,7 +48,7 @@ spec:
           cephfs:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
-            user: dulny  # <namespace>
+            user: <USER>  # <namespace>
             path: "<OUTPUT_MOUNT_PATH>" # The path you want to mount
             secretRef: # The name of the secret for auth. Is always "ceph-secret"
               name: ceph-secret
