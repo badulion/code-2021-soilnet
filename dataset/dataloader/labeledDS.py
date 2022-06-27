@@ -74,8 +74,8 @@ class LabeledSoilData(Dataset):
         data = data.sample(frac=1, random_state=42)
         data_splits = self._split_data(data)
 
-        test_fold = fold
-        val_fold = (fold + 1) % self.num_splits
+        test_fold = (fold + 1) % self.num_splits
+        val_fold = fold
         train_folds = [i for i in range(self.num_splits) if i != test_fold and i != val_fold]
         all_folds = [i for i in range(self.num_splits)]
 
@@ -248,7 +248,7 @@ class LabeledDataModule(pl.LightningDataModule):
                                      bezirk=None)
 
         self.val = LabeledSoilData(path=self.path,
-                                   mode=self.mode,
+                                   mode="val",
                                    fold=self.fold,
                                    features_metrical=self.features_metrical,
                                    features_categorical=self.features_categorical,

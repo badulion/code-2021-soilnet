@@ -126,8 +126,8 @@ class PatchData(Dataset):
         data = data.sample(frac=1, random_state=42)
         data_splits = self._split_data(data)
 
-        test_fold = fold
-        val_fold = (fold + 1) % 10
+        test_fold = (fold + 1) % 10
+        val_fold = fold
         train_folds = [i for i in range(10) if i != test_fold and i != val_fold]
 
         if self.mode == "test":
@@ -192,7 +192,7 @@ class PatchDataModule(pl.LightningDataModule):
 
         self.val = PatchData(path_lab=self.path_lab,
                                 path_unlab=self.path_unlab,
-                                mode=self.mode,
+                                mode="val",
                                 fold=self.fold,
                                 num_splits=self.num_splits,
                                 n = self.n,
