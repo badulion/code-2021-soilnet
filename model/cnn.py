@@ -12,30 +12,34 @@ class CNNModule(nn.Module):
         super().__init__()
         n = patch_size * 2 + 1
         self.layers = []
-        self.layers.append(nn.Conv2d(input_channels, base_channels, kernel_size=(1,1))) # n x n    n = 11
+        self.layers2 = []
+        self.maxp = nn.MaxPool2d(2, 2)
+        self.layer1 = nn.Conv2d(input_channels, base_channels, kernel_size=(1,1)) # n x n    n = 11
         self.layers.append(torch.nn.ReLU())
-        self.layers.append(nn.Conv2d(base_channels, base_channels * 2, kernel_size=(3,3))) # n-2 x n-2    n = 9
+        self.layers.append(nn.Conv2d(base_channels, base_channels * 2, kernel_size=(3,3), padding=1)) # n-2 x n-2    n = 9
         self.layers.append(torch.nn.ReLU())
         self.layers.append(nn.MaxPool2d(2, 2)) # (n-2)/2 x (n-2)/2         n = 5
         self.layers.append(torch.nn.Dropout(p=dropout, inplace=False))
-        self.layers.append(nn.Conv2d(base_channels * 2, base_channels * 2, kernel_size=(3,3))) # (n-2)/2-2 x (n-2)/2-2    n = 3
+        self.layers.append(nn.Conv2d(base_channels * 2, base_channels * 2, kernel_size=(3,3), padding=1)) # (n-2)/2-2 x (n-2)/2-2    n = 3
         self.layers.append(torch.nn.ReLU())
-        self.layers.append(nn.Conv2d(base_channels * 2, base_channels, kernel_size=(1,1)))
-        self.layers.append(nn.Flatten(1))
-        inn = int(int((n-2)/2)-2) * int(int((n-2)/2)-2) * base_channels
+        end_layer = nn.Conv2d(base_channels * 2, base_channels, kernel_size=(1,1))
+        self.layers.append(end_layer)
+        self.flatten = nn.Flatten(1)
+        inn = int(int((n)/2)) * int(int((n)/2)) * base_channels
         out = base_channels
-        self.layers.append(nn.Linear(inn, out)) #methode mit der man inputsize erkennen kann
-        self.layers.append(torch.nn.ReLU())
-        self.layers.append(torch.nn.Dropout(p=dropout, inplace=False))
-        self.layers.append(nn.Linear(base_channels, base_channels//2))
-        self.layers.append(torch.nn.ReLU())
-        self.layers.append(torch.nn.Dropout(p=dropout, inplace=False))
-        self.layers.append(nn.Linear(base_channels//2, output_size))
-        self.layers.append(torch.nn.ReLU())
-        self.layers.append(nn.Softmax())
+        self.layers2.append(nn.Linear(inn, out)) #methode mit der man inputsize erkennen kann
+        self.layers2.append(torch.nn.ReLU())
+        self.layers2.append(torch.nn.Dropout(p=dropout, inplace=False))
+        self.layers2.append(nn.Linear(base_channels, base_channels//2))
+        self.layers2.append(torch.nn.ReLU())
+        self.layers2.append(torch.nn.Dropout(p=dropout, inplace=False))
+        self.layers2.append(nn.Linear(base_channels//2, output_size))
+        self.layers2.append(torch.nn.ReLU())
+        self.layers2.append(nn.Softmax())
 
         # model sequential
-        self.model = nn.Sequential(*self.layers)
+        self.model_part1 = nn.Sequential(*self.layers)
+        self.model_part2 = nn.Sequential(*self.layers2)
         #in 6 outputs splitten am ende nach tiefe (ganz spät)
         # wie bestimme ich die sizes im neuronalen Netz? (in-channel, out-channel, kernel-size)
         # wie integriere ich patchDS und cnn am besten?
@@ -45,7 +49,11 @@ class CNNModule(nn.Module):
         #   nn.init.kaiming_normal_(layer.weight, nonlinearity='selu')
 
     def forward(self, x):
-        return self.model(x)
+        x0 = self.layer1(x)
+        x1 = self.model_part1(x0)
+        x2 = (x1 + self.maxp(x0))
+        x3 = self.flatten(x2)
+        return self.model_part2(x3)
 
 # gleiche parameter wie für SoilCNN
 class SoilCNNLightningModule(pl.LightningModule):
