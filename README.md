@@ -1,11 +1,5 @@
 <div id="top"></div>
 
-1. Was ist dieses Repo
-2. Modelle auflisten und kurz beschreiben
-3. Prerequisites
-4. How to get Started
-5. Running Experiments
-
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
@@ -131,7 +125,33 @@ In order to run the SoilNet model the loop staring in line 21 need to look like 
 ```
 
 
+##### mini report what we did
 
+We tried to predict soil particle size in Franken. 
+For the task we trained and tested different models trying to reduce the sme.
+The performance of the models is the following:
+
+| Modell   | MAE    | MSE    |
+| -------- | ------ | ------ |
+| SVM      | 0.3471 | 0.0721 |
+| RF       | 0.3500 | 0.0705 |
+| CATBOOST | 0.3393 | 0.0675 |
+| IDW      | 0.3550 | 0.0753 |
+| KNN      | 0.3603 | 0.0760 |
+| MEAN     | 0.4960 | 0.1255 |
+| MLP      | 0.3512 | 0.0680 |
+| CNN      | 0.3650 | 0.0750 |
+
+##### division of labour for hiwi
+
+Einarbeitung Überblick & Aufgabenstellung:
+25% <br>
+Planung der Durchführung:
+20% <br>
+Implementierung:
+25% <br>
+Fehlerbehebung, Maintainance, Testen:
+30% <br>
 
 <!-- LICENSE -->
 ## License
