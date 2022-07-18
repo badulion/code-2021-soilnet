@@ -5,7 +5,7 @@ defaults:
   - patch: make_patch
 
 dataset:
-  path_labeled: dataset/data/Feb_2022/fr_lab_neu_mit_0_bis_4.csv
+  path_labeled: dataset/data/Feb_2022/fr_lab_neu.csv
   path_unlabeled: dataset/data/Feb_2022/fr_unlab.csv
   path_weak_labeled: dataset/data/Feb_2022/weak_labels/
   mode: val
