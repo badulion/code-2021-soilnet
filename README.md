@@ -128,7 +128,7 @@ In order to run the SoilNet model the loop staring in line 21 need to look like 
 ##### mini report what we did
 
 We tried to predict soil particle size in Franken. 
-For the task we trained and tested different models trying to reduce the sme.
+For the task we trained and tested different models trying to reduce the mse.
 The performance of the models is the following:
 
 | Modell   | MAE    | MSE    |
